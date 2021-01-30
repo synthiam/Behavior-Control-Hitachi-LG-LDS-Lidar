@@ -1,0 +1,10 @@
+Wires
+GREY - ground
+RED - +5
+GREEN - RX
+BROWN - TX
+
+size 2520
+baud 230400
+USART_SendData(USART1, 'b'); // start transmitting
+USART_SendData(USART1, 'e'); // pause trnsmitting

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<PluginV1XML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <FRIENDLY_NAME>Hitachi-LG LDS Lidar</FRIENDLY_NAME>
+  <DLL_FILENAME>Hitachi-LG_LDS_Lidar.dll</DLL_FILENAME>
+  <AUTHOR_NAME>Synthiam Inc.</AUTHOR_NAME>
+  <LICENSE_URL>https://synthiam.com/Software/plugin-license.aspx</LICENSE_URL>
+  <PLUGIN_GUID>157dde34-0ffa-4a38-82bc-cd1e185e4584</PLUGIN_GUID>
+  <CATEGORY_TYPE>Navigation</CATEGORY_TYPE>
+  <DESCRIPTION>NMS Driver for the Hitachi-LG LDS 360 degree lidar.</DESCRIPTION>
+  <VersionRelease>8</VersionRelease>
+</PluginV1XML>
