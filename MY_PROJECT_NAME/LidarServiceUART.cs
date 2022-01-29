@@ -29,7 +29,10 @@ namespace Hitachi_LG_LDS_Lidar {
 
     EZTaskScheduler _ts = null;
 
-    readonly int BUFFER_SIZE = 64000;
+    int    _BAUD = 230400;
+    string _PORT = string.Empty;
+
+    readonly int    _BUFFER_SIZE = 64000;
 
     /// <summary>
     /// Returns the status of the camera streaming
@@ -48,7 +51,7 @@ namespace Hitachi_LG_LDS_Lidar {
 
     private void _ts_OnEventError(EZTaskScheduler sender, int taskId, object o, Exception ex) {
 
-      ARC.EZBManager.Log(ex);
+      OnLog?.Invoke(this, ex.ToString());
     }
 
     public static string[] GetPorts() {
@@ -59,11 +62,15 @@ namespace Hitachi_LG_LDS_Lidar {
     /// <summary>
     /// Connect and begin receiving the camera stream
     /// </summary>
-    public void Start(string port) {
+    public void Start(string port, int baud) {
+
+      _BAUD = baud;
+
+      _PORT = port;
 
       stopWorker();
 
-      _ts.StartNew(port);
+      _ts.StartNew();
     }
 
     /// <summary>
@@ -93,21 +100,19 @@ namespace Hitachi_LG_LDS_Lidar {
 
     void imageThreadWorker(EZTaskScheduler sender, int taskId, object o) {
 
-      string port = o.ToString();
-
       if (sender.IsCancelRequested(taskId))
         return;
 
       List<byte> dataBuffer = new List<byte>();
-      byte[] bufferTmp = new byte[BUFFER_SIZE];
+      byte[] bufferTmp = new byte[_BUFFER_SIZE];
 
-      using (var serialPort = new SerialPort(port))
+      using (var serialPort = new SerialPort(_PORT))
         try {
 
           IsRunning = true;
 
-          serialPort.BaudRate = 230400 * 2;
-          serialPort.ReadBufferSize = BUFFER_SIZE;
+          serialPort.BaudRate = _BAUD;
+          serialPort.ReadBufferSize = _BUFFER_SIZE;
           serialPort.ReadTimeout = 5000;
           serialPort.DtrEnable = true;
           serialPort.RtsEnable = true;
@@ -139,7 +144,7 @@ namespace Hitachi_LG_LDS_Lidar {
 
             zeroCount = 0;
 
-            int read = serialPort.Read(bufferTmp, 0, BUFFER_SIZE);
+            int read = serialPort.Read(bufferTmp, 0, _BUFFER_SIZE);
 
             dataBuffer.AddRange(bufferTmp.Take(read));
 

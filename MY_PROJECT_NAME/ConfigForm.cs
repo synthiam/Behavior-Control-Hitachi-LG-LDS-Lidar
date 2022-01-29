@@ -25,6 +25,12 @@ namespace Hitachi_LG_LDS_Lidar {
 
         _cf = config;
 
+        tbBaud.Text = _cf.STORAGE[ConfigTitles.BAUD_RATE].ToString();
+
+        tbDegreesOffset.Text = _cf.STORAGE[ConfigTitles.OFFSET_DEGREES].ToString();
+
+        cbEnableDebugging.Checked = Convert.ToBoolean(_cf.STORAGE[ConfigTitles.ENABLE_DEBUGGING]);
+
       } catch (Exception ex) {
 
         MessageBox.Show(ex.Message, "Error loading configuration");
@@ -40,6 +46,11 @@ namespace Hitachi_LG_LDS_Lidar {
 
       try {
 
+        _cf.STORAGE[ConfigTitles.BAUD_RATE] = Convert.ToInt32(tbBaud.Text);
+
+        _cf.STORAGE[ConfigTitles.OFFSET_DEGREES] = Convert.ToInt32(tbDegreesOffset.Text);
+
+        _cf.STORAGE[ConfigTitles.ENABLE_DEBUGGING] = cbEnableDebugging.Checked;
       } catch (Exception ex) {
 
         MessageBox.Show(ex.Message, "Error saving configuration");

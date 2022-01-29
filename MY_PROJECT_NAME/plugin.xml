@@ -7,5 +7,5 @@
   <PLUGIN_GUID>157dde34-0ffa-4a38-82bc-cd1e185e4584</PLUGIN_GUID>
   <CATEGORY_TYPE>Navigation</CATEGORY_TYPE>
   <DESCRIPTION>NMS Driver for the Hitachi-LG LDS 360 degree lidar.</DESCRIPTION>
-  <VersionRelease>8</VersionRelease>
+  <VersionRelease>11</VersionRelease>
 </PluginV1XML>

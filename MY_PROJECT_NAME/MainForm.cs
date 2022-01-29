@@ -15,6 +15,7 @@ namespace Hitachi_LG_LDS_Lidar {
     LidarServiceUART        _lidarService;
     Stopwatch               _stopWatch;
     LidarSensorParser       _lidarParser;
+    bool                    _debugging;
 
     public MainForm() {
 
@@ -57,6 +58,9 @@ namespace Hitachi_LG_LDS_Lidar {
       cf.STORAGE.AddIfNotExist(ConfigTitles.FURTHEST_DEGREE_VAR, "$LidarFurthestDegree");
       cf.STORAGE.AddIfNotExist(ConfigTitles.FURTHEST_DISTANCE_VAR, "$LidarFurthestDistance");
       cf.STORAGE.AddIfNotExist(ConfigTitles.IS_LIDAR_RUNNING_VARIABLE, "$LidarIsRunning");
+      cf.STORAGE.AddIfNotExist(ConfigTitles.BAUD_RATE, 230400);
+      cf.STORAGE.AddIfNotExist(ConfigTitles.OFFSET_DEGREES, 0);
+      cf.STORAGE.AddIfNotExist(ConfigTitles.ENABLE_DEBUGGING, false);
 
       ARC.Scripting.VariableManager.SetVariable(cf.STORAGE[ConfigTitles.NEAREST_DISTANCE_VAR].ToString(), 0);
       ARC.Scripting.VariableManager.SetVariable(cf.STORAGE[ConfigTitles.NEAREST_DEGREE_VAR].ToString(), 0);
@@ -64,6 +68,8 @@ namespace Hitachi_LG_LDS_Lidar {
       ARC.Scripting.VariableManager.SetVariable(cf.STORAGE[ConfigTitles.FURTHEST_DEGREE_VAR].ToString(), 0);
 
       ARC.Scripting.VariableManager.SetVariable(cf.STORAGE[ConfigTitles.IS_LIDAR_RUNNING_VARIABLE].ToString(), false);
+
+      _debugging = Convert.ToBoolean(cf.STORAGE[ConfigTitles.ENABLE_DEBUGGING]);
 
       base.SetConfiguration(cf);
     }
@@ -120,7 +126,9 @@ namespace Hitachi_LG_LDS_Lidar {
       if (_lidarService.IsRunning)
         _lidarService.Stop();
 
-      _lidarService.Start(cbPort.SelectedItem.ToString());
+      _lidarService.Start(
+        cbPort.SelectedItem.ToString(),
+        Convert.ToInt32(_cf.STORAGE[ConfigTitles.BAUD_RATE]));
     }
 
     void stop() {
@@ -175,7 +183,7 @@ namespace Hitachi_LG_LDS_Lidar {
 
     private void _lidarParser_OnWarning(object sender, string e) {
 
-      if (IsClosing)
+      if (IsClosing || !_debugging)
         return;
 
       Invokers.SetAppendText(tbLog, true, $"Parser: {e}");
@@ -196,8 +204,13 @@ namespace Hitachi_LG_LDS_Lidar {
 
       var scanPoints = _lidarParser.ParseRawSensorPacket(lidarData);
 
-      if (scanPoints.Length != 360) 
+      if (scanPoints.Length != 360) {
+
+        if (_debugging)
+          Invokers.SetAppendText(tbLog, true, $"Expecting 360 degrees, received {scanPoints.Length} degrees");
+
         return;
+      }
 
       ARC.MessagingService.Navigation2DV1.Messenger.UpdateScan(scanPoints);
 
@@ -208,16 +221,20 @@ namespace Hitachi_LG_LDS_Lidar {
 
       int[] distanceArray = new int[scanPoints.Length];
 
+      int degreesOffset = Convert.ToInt32(_cf.STORAGE[ConfigTitles.OFFSET_DEGREES]);
+
       for (int x = 0; x < scanPoints.Length; x++) {
 
         var sensorValue = scanPoints[x];
+
+        sensorValue.Degree = sensorValue.Degree + degreesOffset % 360;
 
         if (sensorValue.Distance > 0 && sensorValue.Distance < sensorMin.Distance)
           sensorMin = sensorValue;
 
         if (sensorValue.Distance > sensorMax.Distance)
           sensorMax = sensorValue;
-         
+
         if (sensorValue.Distance > 0)
           points.Add(new PointF(
             (float)((IMAGE_WIDTH / 2) + EZ_B.Functions.DegX2(sensorValue.Degree, sensorValue.Distance / 4)),
